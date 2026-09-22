@@ -1,3 +1,4 @@
+// Honestly probably better in extension.ts
 export const RARITY_COLORS = {
   common: '#a0a0a0',
   uncommon: '#00c100',
@@ -6,4 +7,4 @@ export const RARITY_COLORS = {
   legendary: '#ffae00',
   mythic: '#fffc53',
   exotic: '#00fff7'
-};
+} as const;
