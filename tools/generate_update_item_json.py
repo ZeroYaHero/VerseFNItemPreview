@@ -3,8 +3,6 @@ import re as re
 import json as json
 from pathlib import Path
 
-# Script that generates/updates json for items and their thumbnail urls
-
 SCRIPT_DIR = Path(__file__).resolve().parent
 JSON_PATH = SCRIPT_DIR.parent / "data" / "item_image_binds.json"
 
@@ -41,9 +39,10 @@ try:
     with open(JSON_PATH, encoding="utf-8") as f:
         binds = json.load(f)
 except FileNotFoundError:
-    binds = {}
+    binds = {'base': None, 'items': {}}
 
 new = unique_names - binds.keys()
 
 with open(JSON_PATH, "w", encoding="utf-8") as f:
-    json.dump(binds | dict.fromkeys(sorted(new)), f, indent=2)
+    binds['items'] |= dict.fromkeys(sorted(new))
+    json.dump(binds, f, indent=2)
