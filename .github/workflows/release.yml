@@ -1,0 +1,91 @@
+name: Package VSIX
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vsix-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out extension
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check out CUE4Parse
+        uses: actions/checkout@v7
+        with:
+          repository: FabianFG/CUE4Parse
+          ref: cb72c6e181687bc9b748ba09928677763057dd3a
+          path: extern/CUE4Parse
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Check version and set package filename
+        run: |
+          $package = Get-Content package.json -Raw | ConvertFrom-Json
+          if ($env:GITHUB_REF.StartsWith('refs/tags/') -and $env:GITHUB_REF_NAME -ne "v$($package.version)") {
+              throw "Release tag must match package.json: v$($package.version)"
+          }
+          "VSIX_PATH=dist/$($package.name)-$($package.version)-win32-x64.vsix" >> $env:GITHUB_ENV
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      # - name: Run unit tests
+      #   run: npm run test:unit # Boo
+
+      # vsce runs vscode:prepublish, which compiles TS and publishes the C# backend.
+      - name: Build and package extension
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          npx --yes @vscode/vsce@4.1.0 package --target win32-x64 --skip-license --out $env:VSIX_PATH
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: versefnitempreview-win32-x64
+          path: ${{ env.VSIX_PATH }}
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view $env:GITHUB_REF_NAME --repo $env:GITHUB_REPOSITORY 2>$null
+          if ($LASTEXITCODE -eq 0) {
+              gh release upload $env:GITHUB_REF_NAME $env:VSIX_PATH --repo $env:GITHUB_REPOSITORY --clobber
+          } else {
+              gh release create $env:GITHUB_REF_NAME $env:VSIX_PATH --repo $env:GITHUB_REPOSITORY --verify-tag --generate-notes --title $env:GITHUB_REF_NAME
+          }

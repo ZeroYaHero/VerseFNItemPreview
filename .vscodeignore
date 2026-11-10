@@ -1,4 +1,7 @@
 .vscode/**
+.github/**
+dist/**
+*.vsix
 .vscode-test/**
 src/**
 .gitignore
@@ -10,5 +13,11 @@ vsc-extension-quickstart.md
 **/*.ts
 **/.vscode-test.*
 
-.tools/*
-.venv/*
+.venv/**
+extern/**
+assets/**
+out/!(extension|backend)/**
+out/backend/!(publish)/**
+data/local_items_scan.json
+data/cache/**
+out/extension/test/**

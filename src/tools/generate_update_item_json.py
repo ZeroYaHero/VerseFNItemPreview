@@ -4,7 +4,7 @@ import json as json
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-JSON_PATH = SCRIPT_DIR.parent / "data" / "item_image_binds.json"
+JSON_PATH = SCRIPT_DIR.parents[1] / "data" / "item_image_binds.json"
 
 CLASS_RE = re.compile(r"(\w+)(?:<\w+>)*\s*:=\s*class(?:<\w+>)*\s*\(\s*entity\s*\)")
 RARITY_RE = re.compile(r"_(Common|Uncommon|Rare|Epic|Legendary|Mythic|Exotic)")
@@ -41,7 +41,7 @@ try:
 except FileNotFoundError:
     binds = {'base': None, 'items': {}}
 
-new = unique_names - binds.keys()
+new = unique_names - binds['items'].keys()
 
 with open(JSON_PATH, "w", encoding="utf-8") as f:
     binds['items'] |= dict.fromkeys(sorted(new))

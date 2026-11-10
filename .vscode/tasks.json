@@ -4,6 +4,18 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
+			"label": "debug build",
+			"dependsOn": ["publish backend", "npm: watch"],
+			"dependsOrder": "sequence",
+			"problemMatcher": []
+		},
+		{
+			"label": "publish backend",
+			"type": "npm",
+			"script": "publish:backend",
+			"problemMatcher": "$msCompile"
+		},
+		{
 			"type": "npm",
 			"script": "watch",
 			"problemMatcher": "$tsc-watch",
