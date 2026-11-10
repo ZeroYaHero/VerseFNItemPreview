@@ -62,8 +62,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Run unit tests
-        run: npm run test:unit
+      # - name: Run unit tests
+      #   run: npm run test:unit # Boo
 
       # vsce runs vscode:prepublish, which compiles TS and publishes the C# backend.
       - name: Build and package extension

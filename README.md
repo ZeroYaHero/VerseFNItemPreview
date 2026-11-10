@@ -31,7 +31,7 @@ Simple image preview for `Fortnite.digest.verse` exposed Fortnite item entities.
 
 Set `versefnitempreview.paksDirectory` to the Fortnite `Content/Paks` directory if your installation is outside the default Epic Games folder.
 
-## GitHub Releases
+<!-- ## GitHub Releases
 
 The **Package VSIX** workflow builds a Windows x64 extension and attaches the `.vsix` to a GitHub Release when a version tag is pushed. The tag must match the version in `package.json`, for example:
 
@@ -42,7 +42,7 @@ git push origin v0.0.1
 
 Commit and push the source changes, workflow, and tests before tagging. The workflow checks out CUE4Parse at the pinned revision in `.github/workflows/release.yml`, including its submodules, so the local `extern` directory does not need to be committed.
 
-You can also run **Package VSIX** manually from the repository's Actions tab to download a build artifact. Manual runs on branches do not create a release. The workflow uses GitHub's built-in token and does not require a Marketplace token.
+You can also run **Package VSIX** manually from the repository's Actions tab to download a build artifact. Manual runs on branches do not create a release. The workflow uses GitHub's built-in token and does not require a Marketplace token. -->
 
 ## Acknowledgements
 
