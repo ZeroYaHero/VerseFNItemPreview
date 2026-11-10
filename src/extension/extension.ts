@@ -1,55 +1,26 @@
 import * as vscode from 'vscode';
 import itemBinds from '../../data/item_image_binds.json';
+import { BackendClient } from './backendClient';
+import { ItemHoverProvider } from './itemHoverProvider';
 
-const RARITY_RE = /.*(_(Common|Uncommon|Rare|Epic|Legendary|Mythic|Exotic))/;
+export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    await vscode.workspace.fs.createDirectory(context.globalStorageUri);
 
-const RARITY_COLORS = {
-	common: '#a0a0a0',
-	uncommon: '#00c100',
-	rare: '#0088ff',
-	epic: '#a600ff',
-	legendary: '#ffae00',
-	mythic: '#fffc53',
-	exotic: '#00fff7'
-} as const;
+    const output = vscode.window.createOutputChannel('VerseFNItemPreview');
+    const settings = vscode.workspace.getConfiguration('versefnitempreview');
+    const backend = new BackendClient({
+        executable: context.asAbsolutePath('out/backend/publish/Backend.exe'),
+        paksDirectory: settings.get<string>('paksDirectory')!,
+        scanFile: vscode.Uri.joinPath(context.globalStorageUri, 'items.json').fsPath,
+        cacheDirectory: vscode.Uri.joinPath(context.globalStorageUri, 'cache').fsPath
+    }, output);
 
-function getRarityColor(rarity: string): string {
-	return RARITY_COLORS[rarity as keyof typeof RARITY_COLORS];
+    const knownTokens = new Set(Object.keys(itemBinds.items)); // TODO: As mentioned in the README.md this is just an artifact of the previous method. Worth considering a different way.
+    const hoverProvider = new ItemHoverProvider(backend, knownTokens, output);
+    const registration = vscode.languages.registerHoverProvider('verse', hoverProvider);
+    context.subscriptions.push(registration, backend, output);
+
+    backend.start()
+        .then(items => hoverProvider.setItems(items))
+        .catch(error => output.appendLine(`Startup failed: ${String(error)}`));
 }
-
-function getPreviewImageMarkdown(imageUrl: string, width: number = 200, bg: string = '#fb0a0a'): vscode.MarkdownString {
-	const md = new vscode.MarkdownString(`<span style="background-color:${bg};"><img src="${imageUrl}" width="${width}" height="${width}"/></span>`);
-	md.supportHtml = true;
-	return md;
-}
-
-export function activate(context: vscode.ExtensionContext) {
-	const items: Record<string, string | null> = itemBinds.items;
-	const verseHover = vscode.languages.registerHoverProvider('verse', {
-		provideHover(document, position, token) {
-			const range = document.getWordRangeAtPosition(position);
-			if (!range) return;
-
-			let word = document.getText(range);
-			let color = '#00000000';
-
-			const rarityResult = word.match(RARITY_RE);
-			if (rarityResult) {
-				color = getRarityColor(rarityResult[2].toLowerCase());
-				word = word.substring(0, word.length - rarityResult[1].length)
-			}
-
-			if (!items[word]) {
-				console.log("No image found for item:", word);
-				return;
-			}
-			const imgUri = vscode.Uri.parse(`${itemBinds.base}${items[word]}`);
-			const md = getPreviewImageMarkdown(imgUri.toString(), 200, color);
-			return new vscode.Hover(md, range);
-		}
-	});
-	context.subscriptions.push(verseHover);
-}
-
-// This method is called when your extension is deactivated
-export function deactivate() {}

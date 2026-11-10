@@ -10,5 +10,10 @@ vsc-extension-quickstart.md
 **/*.ts
 **/.vscode-test.*
 
-.tools/*
-.venv/*
+.venv/**
+extern/**
+assets/**
+out/backend/net10.0/**
+data/local_items_scan.json
+data/cache/**
+out/extension/test/**

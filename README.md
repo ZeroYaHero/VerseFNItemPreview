@@ -11,23 +11,36 @@ Simple image preview for `Fortnite.digest.verse` exposed Fortnite item entities.
 
 ## Requirements
 
-- Local Files: Requires Fortnite install on Windows x64
-- Remote: Any device
+- Fortnite installed on Windows x64.
+- Network access for initial Fortnite metadata and mappings retrieval.
+
+## How It Works
+
+1. The C# backend fetches keys + mappings through the publicly accessible [FortnitePorting](https://github.com/h4lfheart/FortnitePorting) API.
+2. The backend then scans your installed Fortnite archives for items (consumables, weapons, traps, resources, etc) with the help of [CUE4Parse](https://github.com/FabianFG/CUE4Parse). This takes a few seconds on startup!
+    > **NOTE:** You can see this process by navigating to `Output` tab/window in VSCode and change the channel to VerseFNItemPreview
+3. The backend then writes an icon-only item index to the extension's storage directory. 
+    - Definitions sharing a category, icon path, and equivalent display name are grouped. Each group retains its display name, icon paths, gameplay tags, and source asset names and paths.
+    - This is useful for matching with Verse tokens in your code. 
+4. When the extension detects a hover of a token in Verse it first verifies it's a reflected item (this is done through the [`data/item_image_binds.json`](data/item_image_binds.json) which is generated through the janky [`src/tools/generate_update_item_json.py`](src/tools/generate_update_item_json.py)...both are somewhat artifacts of a streaming based implementation, but it will do for now).
+5. The extension uses [Levenshtein distance](https://github.com/ka-weihe/fastest-levenshtein) to compare the previously scanned local items with the token.
+6. If it finds a match, it will send a request to the backend. The backend will check if a texture already exists (via hashing the name/path) and return it or export the one that exists.
+7. The extension then previews with markdown.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Set `versefnitempreview.paksDirectory` to the Fortnite `Content/Paks` directory if your installation is outside the default Epic Games folder.
 
-For example:
+## Acknowledgements
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+Thanks to H4lfHeart for enlightening me on their FortnitePorting API! Their work on [FortnitePorting](https://github.com/h4lfheart/FortnitePorting) was also extremely useful in understanding more about CUE4Parse.
 
 ## Known Issues
 
-Constantly requests fortnite.gg without caching and does not have explicit okay from developer (lol). Working on having it be locally based.
+- [`data/item_image_binds.json`](data/item_image_binds.json) is ran offline and requires me to update the git repository. In the future this will be a completely local operation.
+- Scanning of archives takes a few seconds on startup.
+- For some items that have different models/icons for rarity they display only one of the models.
+- *(Not really an issue but more of a TODO)*: Only works for Fortnite items exposed with itemization. In the future it should allow for previewing thumbnails of any asset type.
 
 <!-- ## Release Notes
 

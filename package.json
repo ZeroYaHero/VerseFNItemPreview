@@ -12,28 +12,52 @@
   "activationEvents": [
     "onLanguage:verse"
   ],
-  "main": "./out/extension.js",
-  "contributes": {},
+  "main": "out/extension/extension.js",
+  "extensionKind": [
+    "ui"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "VerseFNItemPreview",
+      "properties": {
+        "versefnitempreview.paksDirectory": {
+          "type": "string",
+          "default": "C:\\Program Files\\Epic Games\\Fortnite\\FortniteGame\\Content\\Paks",
+          "description": "Directory containing the installed Fortnite pak and IoStore archives."
+        }
+      }
+    }
+  },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run compile && npm run publish:backend",
+    "publish:backend": "dotnet publish src/backend/Backend.csproj --configuration Release --runtime win-x64 --self-contained true --output out/backend/publish",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
+    "test:unit": "npm run compile && node --test out/extension/test/matching.test.js out/extension/test/backendClient.test.js",
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.138.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "24.x",
-    "typescript-eslint": "^8.61.1",
+    "@types/vscode": "^1.134.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
     "eslint": "^10.5.0",
     "typescript": "^6.0.3",
-    "@vscode/test-cli": "^0.0.15",
-    "@vscode/test-electron": "^3.0.0"
+    "typescript-eslint": "^8.61.1"
   },
   "overrides": {
     "diff": "^8.0.4",
     "serialize-javascript": "^7.0.6"
+  },
+  "dependencies": {
+    "fastest-levenshtein": "^1.0.16"
+  },
+  "publisher": "ZeroYaHero",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZeroYaHero/VerseFNItemPreview.git"
   }
 }

@@ -4,3 +4,9 @@ node_modules
 .vscode-test/
 *.vsix
 .venv/*
+.vscode/*
+.github/*
+data/local_items_scan.json
+data/cache/
+**/bin/
+**/obj/
